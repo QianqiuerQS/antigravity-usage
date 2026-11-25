@@ -72,8 +72,8 @@ def read_db(path, *, immutable=False):
                 step = fields(blob, {1, 9, 20})
                 if 9 not in step:
                     continue
-                usage = fields(step[9], {2, 3, 4, 5, 11})
-                tokens = [usage.get(k, 0) for k in (2, 3, 5, 4)]
+                usage = fields(step[9], {2, 3, 4, 5, 9, 11})
+                tokens = [usage.get(k, 0) for k in (2, 3, 5, 4, 9)]
                 if not any(tokens):
                     continue
                 stamp = fields(step[1], {1, 2})
@@ -142,10 +142,15 @@ def snapshot():
     titles = {}
     summary = ROOT.parent / "conversation_summaries.db"
     if summary.exists():
-        try:
-            with closing(sqlite3.connect(summary.as_uri() + "?mode=ro", uri=True)) as db:
-                titles = dict(db.execute("SELECT conversation_id, title FROM conversation_summaries"))
-        except sqlite3.Error:
+        # WAL 模式下只读打开偶尔会失败（unable to open database file），先重试再退化为 immutable 读快照
+        for suffix in ("?mode=ro", "?mode=ro", "?mode=ro&immutable=1"):
+            try:
+                with closing(sqlite3.connect(summary.as_uri() + suffix, uri=True)) as db:
+                    titles = dict(db.execute("SELECT conversation_id, title FROM conversation_summaries"))
+                break
+            except sqlite3.Error:
+                continue
+        else:
             issues.append("部分线程标题暂时无法读取")
     return dict(rows=rows, titles=titles, databases=len(paths), issues=issues)
 

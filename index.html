@@ -1,6 +1,22 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Antigravity 用量</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f4f5f0;color:#192d29;font:15px Inter,-apple-system,"PingFang SC",sans-serif}main{max-width:1180px;margin:auto;padding:54px 5vw}header,section,details{margin-bottom:22px}h1{letter-spacing:-2px;font-size:clamp(32px,5vw,56px);margin:4px 0 12px}p,label,small{color:#566960}section,details{background:white;border:1px solid #d9dfd7;border-radius:16px;padding:24px}form,.stats{display:flex;gap:18px;flex-wrap:wrap;align-items:end}label{display:grid;gap:6px}input,button{font:inherit;border:1px solid #abbdb3;border-radius:8px;padding:9px;background:white;color:inherit}button{cursor:pointer;background:#184e42;color:white}.stats{padding:24px;background:#193f36;color:#fff;border-radius:16px;margin:20px 0}.stats div{flex:1;min-width:130px}.stats b{display:block;font-size:clamp(20px,3vw,34px);margin-top:5px}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:12px 8px;border-bottom:1px solid #e1e7e2}th{font-size:13px;color:#5a6c62}th:first-child,td:first-child{text-align:left}h2{font-size:21px;margin:0 0 12px}summary{cursor:pointer;font-weight:650}a{color:#176353}#msg{color:#8d401d}meter{width:72px;accent-color:#388771}
+.stamp{display:flex;gap:6px;align-items:stretch;min-width:0}
+.stamp>input{flex:1;min-width:0}
+.calBtn{flex:0 0 30px;border:1px solid #abbdb3;border-radius:8px;background:#fff;color:#566960;font-size:13px;cursor:pointer;padding:0;line-height:1}
+#settings .calBtn,#rankPanel .calBtn{background:#203642;border-color:#44616d;color:#a9c4c8}
+#calPop{position:fixed;z-index:99;width:238px;background:#101b26;border:1px solid #33505e;border-radius:12px;padding:10px;box-shadow:0 14px 34px #000a;color:#dceaf2;font:12px Inter,-apple-system,"PingFang SC",sans-serif}
+#calPop header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;cursor:default}
+#calPop header strong{font-weight:600;font-size:12px;color:#dceaf2}
+#calPop button{background:none;border:0;color:#cfe6ee;font:inherit;padding:4px 7px;cursor:pointer;border-radius:6px}
+#calPop button:hover{background:#1e3442}
+#calPop .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+#calPop .dow{color:#7d97a3;text-align:center;font-size:10px;padding:2px 0}
+#calPop .day{text-align:center;padding:5px 0;border-radius:6px;font-variant-numeric:tabular-nums}
+#calPop .day.sel{background:#2f6a63;color:#eafffb}
+#calPop .day.today{box-shadow:inset 0 0 0 1px #3d5a67}
+#calPop .day.out{visibility:hidden}
+#calPop .foot{display:flex;justify-content:space-between;margin-top:8px;color:#8fa8b4}
 body.floating { background:transparent; color-scheme:dark; overflow:hidden }
 .floating main { display:none }
 .floating aside { padding:5px; user-select:none }
@@ -51,13 +67,16 @@ body.floating { background:transparent; color-scheme:dark; overflow:hidden }
 #rankPanel table {white-space:normal;font-size:13px}
 #rankPanel tr{background:#132333e8}
 #rankPanel th,#rankPanel td {border-color:#314454;color:inherit}
-#rankPanel td:first-child{width:55%;overflow-wrap:anywhere}
+#rankPanel td:first-child{width:24%;overflow-wrap:anywhere}
 #rankPanel .scroll{min-height:0;overflow:auto}
 #rankPanel output{font-variant-numeric:tabular-nums;font-size:20px;color:#ace4dd;display:block;margin:2px 0 12px}
 #ranknote{color:#d2c7ad;font-size:12px;margin:4px 0}
+#rankSplit{color:#8fa8b4;font-size:11px;margin:-4px 0 10px;font-variant-numeric:tabular-nums}
 #rankPanel header{cursor:grab;min-height:32px;margin-bottom:19px}
 #rankPanel header h2{font-size:19px;font-weight:580;letter-spacing:.04em;margin:0}
-#rankPanel #closeRank{background:transparent;border:0;color:#a9c4c8;font-size:12px;cursor:pointer}
+#rankPanel #closeRank,#rankPanel #openSettings{background:transparent;border:0;color:#a9c4c8;font-size:12px;cursor:pointer}
+#rankPanel .headActions{display:flex;align-items:center;gap:2px}
+#rankPanel #openSettings{padding-right:10px}
 #rankPanel input,#rankPanel select,#rankPanel form button{background:#192a35;border-color:#ffffff1c}
 #rankPanel form button{color:#abdfd5}
 #rankPanel nav{margin-top:10px}
@@ -69,12 +88,29 @@ body.floating { background:transparent; color-scheme:dark; overflow:hidden }
 #rankPanel output strong{font-size:32px;letter-spacing:-1.4px;font-weight:500;color:#c3f3e5}
 #rankPanel output small{color:#a7b9c6;font-size:14px}
 </style><main><header><h1>Antigravity 用量</h1><p id="status">正在读取本机会话…</p></header>
-<section><form id="filters"><label>开始时间（北京时间）<input id="start" type="datetime-local"></label><label>截止时间（北京时间，不含）<input id="end" type="datetime-local"></label><button type="submit">应用时段</button><button type="button" id="today">今天</button><button type="button" id="all">全部时间</button><button type="button" id="reload">刷新数据</button></form><p id="range"></p><div id="msg" role="status"></div></section>
+<section><form id="filters"><label>开始时间（北京时间）<span class="stamp"><input id="start" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="YYYY/MM/DD HH:MM:SS" title="例：2026/11/01 11:00:23，秒可省略"><button type="button" class="calBtn" data-target="start" title="选择日期" aria-label="选择日期">▦</button></span></label><label>截止时间（北京时间，不含）<span class="stamp"><input id="end" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="YYYY/MM/DD HH:MM:SS" title="例：2026/11/24 12:30:00，秒可省略"><button type="button" class="calBtn" data-target="end" title="选择日期" aria-label="选择日期">▦</button></span></label><button type="submit">应用时段</button><button type="button" id="today">今天</button><button type="button" id="all">全部时间</button><button type="button" id="reload">刷新数据</button></form><p id="range"></p><div id="msg" role="status"></div></section>
 <div class="stats"><div>累计 token<b id="total">—</b></div><div>模型响应数<b id="count">—</b></div><div>按量参考价值 · USD<b id="cost">—</b></div></div>
 <section><h2>模型使用明细</h2><div class="scroll"><table><thead><tr><th>模型</th><th>用量占比</th><th>响应</th><th>输入</th><th>输出</th><th>缓存读</th><th>缓存写</th><th>估算 USD</th></tr></thead><tbody id="usage"></tbody></table></div></section>
 <details><summary>模型价格与计算口径</summary><p>2026-11-24 核对 · 全球标准在线推理参考价，单位为美元 / 百万 token。用本表费率重估所选记录。套餐内用量也计入估值，实际账单取决于套餐、超额设置与折扣。</p><div class="scroll"><table><thead><tr><th>模型</th><th>输入</th><th>输出</th><th>缓存读</th></tr></thead><tbody id="prices"></tbody></table></div><p>Carbon、Argon 按响应日期估价。按北京时间划分，2026 年 12 月 1 日前采用折后价，之后采用标准价。Google Cloud 通过抵扣额提供优惠。Flash 3.6–3.8 使用截至 12 月 31 日的公布价。Gemini 3.1 Pro 超过 20 万输入 token 使用长上下文费率。Orchestrator 按记录中的实际执行模型计量。缓存写入期限未知时不估算该响应价格。</p><a href="https://cloud.google.com/model-garden/pricing">Google 模型定价</a> · <a href="https://docs.cloud.google.com/gemini/enterprise/docs/quotas-and-pay-as-you-go-usage">Claude 参考价</a> · <a href="https://antigravity.google/docs/plans">套餐与额度</a></details></main>
 <script>
 const el=id=>document.getElementById(id);
+const stamp=v=>v?v.replace('T',' ').replaceAll('-','/'):'';
+const stampIds=['start','end','since','rankStart','until'];
+function parseStamp(raw){
+ const m=String(raw??'').trim().match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
+ if(!m)return null;
+ const pad=n=>String(n).padStart(2,'0');
+ const [,y,mo,d,h='0',mi='0',sec='0']=m;
+ const date=new Date(Date.UTC(+y,+mo-1,+d,+h,+mi,+sec));
+ if(+h>23||+mi>59||+sec>59||date.getUTCFullYear()!==+y||date.getUTCMonth()!==+mo-1||date.getUTCDate()!==+d)return null;
+ return `${y}-${pad(mo)}-${pad(d)}T${pad(h)}:${pad(mi)}:${pad(sec)}`;
+}
+document.addEventListener('input',e=>{if(stampIds.includes(e.target.id))e.target.setCustomValidity('')});
+document.addEventListener('change',e=>{
+ if(!stampIds.includes(e.target.id))return;
+ const value=parseStamp(e.target.value);
+ if(value!==null)e.target.value=stamp(value);
+});
 const rates={
 'gemini-4-neon':[3,15,.15],'gemini-4-carbon':[4,20,.2],'gemini-4-argon':[4,20,.2],'gemini-4-hydrogen':[1.5,7.5,.075],
 'gemini-3.8-flash':[.75,3.75,.075],'gemini-3.7-flash':[.75,3.75,.075],'gemini-3.6-flash':[.75,3.75,.075],'gemini-3.1-pro':[2,12,.2],
@@ -93,17 +129,80 @@ for(const [name,rate] of Object.entries(rates)){
 tableRow('prices',['gemini-3.1-pro（长上下文）',4,18,.4]);
 
 const fmt=n=>n.toLocaleString('zh-CN');
+const pct=(a,b)=>b>0?(a/b*100).toFixed(1)+'%':'—';
+const fmtToken=n=>{
+ if(n>=1e9)return (n/1e9).toFixed(2)+'B';
+ if(n>=1e6)return (n/1e6).toFixed(2)+'M';
+ if(n>=1e3)return (n/1e3).toFixed(1)+'K';
+ return String(n);
+};
+let calPop=null,calTarget=null,calMonth=[0,0];
+function closeCal(){calPop?.remove();calPop=null;calTarget=null}
+const pad2=n=>String(n).padStart(2,'0');
+function renderCal(){
+ const [y,m]=calMonth, first=new Date(Date.UTC(y,m,1)), startDow=(first.getUTCDay()+6)%7,
+      days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),
+      sel=(parseStamp(calTarget.value)||'').slice(0,10),
+      today=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
+ let cells='';
+ for(let i=0;i<startDow;i++)cells+='<span class="day out"></span>';
+ for(let d=1;d<=days;d++){
+  const iso=`${y}-${pad2(m+1)}-${pad2(d)}`;
+  cells+=`<button type="button" class="day${iso===sel?' sel':''}${iso===today?' today':''}" data-date="${iso}">${d}</button>`;
+ }
+ calPop.innerHTML=`<header><button type="button" data-nav="-1" aria-label="上个月">‹</button><strong>${y} 年 ${m+1} 月</strong><button type="button" data-nav="1" aria-label="下个月">›</button></header>`+
+ `<div class="grid">${['一','二','三','四','五','六','日'].map(x=>`<span class="dow">${x}</span>`).join('')}${cells}</div>`+
+ `<div class="foot"><button type="button" data-today="1">今天</button><button type="button" data-close="1">关闭</button></div>`;
+}
+function openCal(btn){
+ const target=el(btn.dataset.target);if(!target)return;
+ closeCal();
+ const base=parseStamp(target.value)||new Date(Date.now()+8*3600000).toISOString().slice(0,19);
+ calTarget=target;calMonth=[+base.slice(0,4),+base.slice(5,7)-1];
+ const pop=document.createElement('div');pop.id='calPop';document.body.append(pop);calPop=pop;renderCal();
+ const r=btn.getBoundingClientRect(),w=238,h=pop.offsetHeight||286;
+ const left=Math.min(Math.max(8,r.right-w),innerWidth-w-8);
+ let top=r.bottom+6;if(top+h>innerHeight-8)top=Math.max(8,r.top-h-6);
+ pop.style.left=left+'px';pop.style.top=top+'px';
+}
+function setFromCal(iso){
+ const time=(parseStamp(calTarget.value)||'').slice(11)||'00:00:00';
+ calTarget.value=stamp(iso+'T'+time);
+ calTarget.dispatchEvent(new Event('input',{bubbles:true}));
+ calTarget.dispatchEvent(new Event('change',{bubbles:true}));
+ const form=calTarget.closest('form');
+ if(form?.id==='period')form.requestSubmit();
+ else if(form?.id==='filters' && parseStamp(el('start').value) && parseStamp(el('end').value))form.requestSubmit();
+ closeCal();
+}
+document.addEventListener('click',event=>{
+ const btn=event.target.closest?.('.calBtn');
+ if(btn){event.preventDefault();openCal(btn);return}
+ if(!calPop)return;
+ if(event.target.closest?.('#calPop')){
+  const day=event.target.closest('[data-date]'),nav=event.target.closest('[data-nav]'),
+        tod=event.target.closest('[data-today]'),cls=event.target.closest('[data-close]');
+  if(day)setFromCal(day.dataset.date);
+  else if(nav){calMonth[1]+=Number(nav.dataset.nav);if(calMonth[1]<0){calMonth[1]=11;calMonth[0]--}if(calMonth[1]>11){calMonth[1]=0;calMonth[0]++}renderCal()}
+  else if(tod)setFromCal(new Date(Date.now()+8*3600000).toISOString().slice(0,10));
+  else if(cls)closeCal();
+  return;
+ }
+ closeCal();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCal()});
+
 let data={rows:[],issues:[]};
 let active;
 function todayRange(){
  const now = Date.now() + 8 * 3600000;
- const day = ms => new Date(ms).toISOString().slice(0,10)+'T00:00';
+ const day = ms => new Date(ms).toISOString().slice(0,10)+'T00:00:00';
  return [day(now), day(now+86400000)];
 }
 function setRange(start,end,mode){
  active = [start,end];
- el('start').value=start;
- el('end').value=end;
+ el('start').value=stamp(start);
+ el('end').value=stamp(end);
  const params=new URLSearchParams({mode,start,end});
  history.replaceState(null,'','#'+params);
  render();
@@ -112,17 +211,18 @@ function render(){
  const [start,end]=active;
  const from=start?Date.parse(start+'+08:00')/1000:-Infinity;
  const to=end?Date.parse(end+'+08:00')/1000:Infinity;
- el('range').textContent='当前统计（北京时间）　'+(start.replace('T',' ')||'最早记录')+'　至　'+(end.replace('T',' ')||'最新记录');
+ el('range').textContent='当前统计（北京时间）　'+(stamp(start)||'最早记录')+'　至　'+(stamp(end)||'最新记录');
  const groups=new Map();
- let total=0,count=0,cost=0,missing=0;
+ let total=0,count=0,cost=0,missing=0,sumIn=0,sumOut=0,sumThink=0,sumCache=0;
  const byThread=floating && el("groupBy")?.value==="thread";
- for(const [time,raw,i,o,r,w,thread] of data.rows){
+ for(const [time,raw,i,o,r,w,t,thread] of data.rows){
   if(time<from || time>=to || (floating && time>Date.now()/1000)) continue;
   const name=raw.replace(/-(high|medium|low|xhigh)$/,'');
   const key=byThread?thread:name;
-  const g=groups.get(key)||{n:0,i:0,o:0,r:0,w:0,total:0,cost:0,missing:0};
+  const g=groups.get(key)||{n:0,i:0,o:0,r:0,w:0,t:0,total:0,cost:0,missing:0};
   const tokens=i+o+r+w;
-  g.n++;g.i+=i;g.o+=o;g.r+=r;g.w+=w;g.total+=tokens;count++;total+=tokens;
+  g.n++;g.i+=i;g.o+=o;g.r+=r;g.w+=w;g.t+=t;g.total+=tokens;count++;total+=tokens;
+  sumIn+=i;sumOut+=Math.max(0,o-t);sumThink+=t;sumCache+=r+w;
   let rate=rates[name];
   if(discounted.has(name) && time<december) rate=[2,10,.1];
   if(name==='gemini-3.1-pro' && i+r+w>200000) rate=[4,18,.4];
@@ -143,14 +243,23 @@ function render(){
   el('rankRows').replaceChildren();
   for(const [id,g] of [...groups].sort((a,b)=>b[1][metric]-a[1][metric])){
    const label=byThread?(data.titles?.[id] || '未命名线程 · '+String(id).slice(0,8)):id;
-   tableRow('rankRows',[label,g.n===g.missing?'待定价':'$'+g.cost.toFixed(4)+(g.missing?'*':''),fmt(g.total)]);
+   const rankRow=tableRow('rankRows',[label,g.n===g.missing?'待定价':'$'+g.cost.toFixed(4)+(g.missing?'*':''),fmtToken(g.i),fmtToken(Math.max(0,g.o-g.t)),fmtToken(g.t),fmtToken(g.r+g.w),pct(g.r+g.w,g.i+g.r+g.w)]);
+   rankRow.cells[0].title=label;
+   rankRow.cells[2].title=fmt(g.i)+' 输入 token';
+   rankRow.cells[3].title=fmt(Math.max(0,g.o-g.t))+' 输出 token（不含思考）';
+   rankRow.cells[4].title=fmt(g.t)+' 思考 token';
+   rankRow.cells[5].title=fmt(g.r+g.w)+' 缓存 token';
+   rankRow.cells[6].title='缓存命中率 '+(g.i+g.r+g.w>0?((g.r+g.w)/(g.i+g.r+g.w)*100).toFixed(1)+'%':'—');
   }
   el('rankName').textContent=byThread?'聊天线程':'模型';
   el('rankUsd').textContent='$'+cost.toFixed(2);
-  el('rankTokens').textContent=fmt(total)+' token';
+  el('rankTokens').textContent=fmtToken(total)+' token';
+  el('rankTokens').title=fmt(total)+' token';
+  el('rankSplit').textContent='输入 '+fmtToken(sumIn)+' · 输出 '+fmtToken(sumOut)+' · 思考 '+fmtToken(sumThink)+' · 缓存 '+fmtToken(sumCache)+' · 命中 '+pct(sumCache,sumIn+sumCache);
+  el('rankSplit').title='输入 '+fmt(sumIn)+' / 输出 '+fmt(sumOut)+' / 思考 '+fmt(sumThink)+' / 缓存 '+fmt(sumCache)+' / 命中率 '+(sumIn+sumCache>0?(sumCache/(sumIn+sumCache)*100).toFixed(2)+'%':'—');
   el('ranknote').textContent=[count?'':'所选时段没有记录',missing?'* 金额仅含可估价响应':'',...data.issues].filter(Boolean).join(' · ');
  }
- el('total').textContent=fmt(total);el('count').textContent=fmt(count);
+ el('total').textContent=fmtToken(total);el('total').title=fmt(total)+' token';el('count').textContent=fmt(count);
  el('cost').textContent=(missing && missing===count)?'待定价':'$'+cost.toFixed(2);
  el('msg').textContent=[from>=to?'截止时间须晚于开始时间。':count?'':'所选时段没有用量记录。',missing?'有 '+fmt(missing)+' 个响应缺少完整费率，金额只汇总可估价响应。':'',...data.issues].filter(Boolean).join(' ');
 }
@@ -162,7 +271,11 @@ async function load(){
 }
 el('filters').onsubmit=event=>{
  event.preventDefault();
- const start=el('start').value,end=el('end').value;
+ const start=parseStamp(el('start').value),end=parseStamp(el('end').value);
+ if(start===null||end===null){
+  el('msg').textContent='时间格式应为 2026/11/01 11:00:23（秒可省略）。当前统计时段尚未更改。';
+  return;
+ }
  if(!start || !end || start>=end){
   el('msg').textContent='请填写完整起止时间，并确保截止时间晚于开始时间。当前统计时段尚未更改。';
   return;
@@ -177,14 +290,14 @@ const floating = !!window.webkit?.messageHandlers?.orb;
 if(floating){
  document.body.classList.add('floating');
  document.body.insertAdjacentHTML('beforeend', `<aside>
-  <button id="bubble" title="设置开始时间"><span class="orbit" aria-hidden="true"></span><small>累计 USD</small><strong id="balance">…</strong></button>
+  <button id="bubble" title="查看用量排行"><span class="orbit" aria-hidden="true"></span><small>累计 USD</small><strong id="balance">…</strong></button>
   <form id="settings"><header>用量统计<button type="button" id="quit">退出</button></header>
-  <label>开始时间 · 北京时间<input id="since" type="datetime-local" step="1" required></label>
+  <label>开始时间 · 北京时间<span class="stamp"><input id="since" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="YYYY/MM/DD HH:MM:SS" title="例：2026/11/01 11:00:23" required><button type="button" class="calBtn" data-target="since" title="选择日期" aria-label="选择日期">▦</button></span></label>
   <button type="button" id="openRank">展开用量排行 ↗</button><footer><button type="button" id="now">从现在开始</button><button type="submit">保存</button></footer></form>
-  <div id="rankPanel"><div id="dust" aria-hidden="true"></div><header><h2>用量排行</h2><button id="closeRank">收起</button></header>
-  <form id="period"><label>开始 · 北京时间<input id="rankStart" type="datetime-local" step="1" required></label><label>截止 · 留空持续统计<input id="until" type="datetime-local" step="1"></label><button>应用</button></form>
-  <output id="rankTotal"><strong id="rankUsd"></strong><small id="rankTokens"></small></output><nav><select id="groupBy" aria-label="分组"><option value="model">按模型</option><option value="thread">按聊天线程</option></select><select id="sortBy" aria-label="排序"><option value="cost">按 USD 从高到低</option><option value="total">按 token 从高到低</option></select></nav><div id="ranknote"></div>
-  <div class="scroll"><table><thead><tr><th id="rankName">模型</th><th>估算 USD</th><th>token</th></tr></thead><tbody id="rankRows"></tbody></table></div></div></aside>`);
+  <div id="rankPanel"><div id="dust" aria-hidden="true"></div><header><h2>用量排行</h2><span class="headActions"><button id="openSettings">设置</button><button id="closeRank">收起</button></span></header>
+  <form id="period"><label>开始 · 北京时间<span class="stamp"><input id="rankStart" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="YYYY/MM/DD HH:MM:SS" title="例：2026/11/01 11:00:23" required><button type="button" class="calBtn" data-target="rankStart" title="选择日期" aria-label="选择日期">▦</button></span></label><label>截止 · 留空持续统计<span class="stamp"><input id="until" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="YYYY/MM/DD HH:MM:SS" title="例：2026/11/24 12:30:00，留空表示持续统计"><button type="button" class="calBtn" data-target="until" title="选择日期" aria-label="选择日期">▦</button></span></label><button>应用</button></form>
+  <output id="rankTotal"><strong id="rankUsd"></strong><small id="rankTokens"></small></output><div id="rankSplit"></div><nav><select id="groupBy" aria-label="分组"><option value="model">按模型</option><option value="thread">按聊天线程</option></select><select id="sortBy" aria-label="排序"><option value="cost">按 USD 从高到低</option><option value="total">按 token 从高到低</option></select></nav><div id="ranknote"></div>
+  <div class="scroll"><table><thead><tr><th id="rankName">模型</th><th>估算 USD</th><th title="未缓存输入 token">输入</th><th title="回复 token（不含思考）">输出</th><th title="思考 token，单独计入总量">思考</th><th title="缓存读取 token">缓存</th><th title="缓存命中率 = 缓存 / (输入 + 缓存)">命中</th></tr></thead><tbody id="rankRows"></tbody></table></div></div></aside>`);
  const orbit=document.querySelector('.orbit');
  for(let i=0;i<72;i++){
   const dot=document.createElement('i');
@@ -209,7 +322,7 @@ if(floating){
  function apply(value,cutoff=end){
   end=cutoff;localStorage.setItem('orbEnd',end);
   start=value;localStorage.setItem('orbStart',value);
-  active=[start,end];el('since').value=el('rankStart').value=start;el('until').value=end;
+  active=[start,end];el('since').value=el('rankStart').value=stamp(start);el('until').value=stamp(end);
  }
  function expand(open){
   document.body.classList.toggle('editing',open);
@@ -219,7 +332,7 @@ if(floating){
   render();
   const incomplete=el('msg').textContent.includes('缺少完整费率')||data.issues.length;
   el('balance').textContent=data.issues.includes('用量数据不完整')?'数据暂缺':el('cost').textContent+(incomplete?'*':'');
-  el('bubble').title='北京时间 '+start.replace('T',' ')+' 起 · 按量参考价值'+(incomplete?' · 数据不完整':'');
+  el('bubble').title='北京时间 '+stamp(start)+' 起 · 按量参考价值'+(incomplete?' · 数据不完整':'');
  }
  let refreshing=false;
  async function refresh(){
@@ -232,25 +345,36 @@ if(floating){
   }catch{el('balance').textContent='读取失败'}
   finally{refreshing=false}
  }
- el('bubble').onclick=()=>expand(!document.body.classList.contains('editing'));
- el('openRank').onclick=()=>{
+ const openRank=()=>{
   document.body.classList.remove('editing');
   window.webkit.messageHandlers.orb.postMessage('rank');
  };
+ el('bubble').onclick=openRank;
+ el('openSettings').onclick=()=>window.webkit.messageHandlers.orb.postMessage('settings');
+ el('openRank').onclick=openRank;
  el('closeRank').onclick=()=>{
   window.webkit.messageHandlers.orb.postMessage('closeRank');
  };
  el('groupBy').onchange=el('sortBy').onchange=show;
  el('period').onsubmit=e=>{
   e.preventDefault();
-  const first=el('rankStart').value,last=el('until').value;
-  if(last && Date.parse(first+'+08:00')>=Date.parse(last+'+08:00')){
+  const first=parseStamp(el('rankStart').value);
+  const lastRaw=el('until').value;
+  const last=lastRaw.trim()?parseStamp(lastRaw):'';
+  if(!first){el('rankStart').setCustomValidity('格式：2026/11/01 11:00:23（秒可省略）');el('rankStart').reportValidity();return;}
+  if(last===null){el('until').setCustomValidity('格式：2026/11/24 12:30:00（留空表示持续统计）');el('until').reportValidity();return;}
+  if(last && first>=last){
    el('until').setCustomValidity('截止时间必须晚于开始时间');el('until').reportValidity();return;
   }
   apply(first,last);show();
  };
  el('period').oninput=()=>el('until').setCustomValidity('');
- el('settings').onsubmit=e=>{e.preventDefault();apply(el('since').value,end && el('since').value<end?end:'');show();expand(false);refresh()};
+ el('settings').onsubmit=e=>{
+  e.preventDefault();
+  const since=parseStamp(el('since').value);
+  if(!since){el('since').setCustomValidity('格式：2026/11/01 11:00:23（秒可省略）');el('since').reportValidity();return;}
+  apply(since,end && since<end?end:'');show();expand(false);refresh();
+ };
  el('now').onclick=()=>{apply(localTime(Date.now()),'');show();expand(false);refresh()};
  el('quit').onclick=()=>window.webkit.messageHandlers.orb.postMessage('quit');
  if(location.hash==='#rank')document.body.classList.add('ranking');
@@ -262,7 +386,7 @@ if(floating){
 }else{
 const saved=new URLSearchParams(location.hash.slice(1));
 if(saved.get('mode')==='all') el('all').click();
-else if(saved.get('mode')==='custom' && ['start','end'].every(k=>/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(saved.get(k))) && saved.get('start')<saved.get('end')) setRange(saved.get('start'),saved.get('end'),'custom');
+else if(saved.get('mode')==='custom' && ['start','end'].every(k=>/^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d)?$/.test(saved.get(k))) && saved.get('start')<saved.get('end')) setRange(saved.get('start'),saved.get('end'),'custom');
 else el('today').click();
 load();setInterval(load,60000);
 }
